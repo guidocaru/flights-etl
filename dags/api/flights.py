@@ -9,6 +9,8 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 API_URL = os.getenv("API_URL")
 
+headers = {"x-apikey": API_KEY}
+
 
 def get_flights(
     airport: str,
@@ -17,10 +19,7 @@ def get_flights(
     category: Literal["departures", "arrivals"],
 ) -> list[str]:
 
-    flights = []
-
-    headers = {"x-apikey": API_KEY}
-    endpoint = f"airports/{airport}/flights/{category}"
+    endpoint = f"/airports/{airport}/flights/{category}"
     params = {"start": start_date, "end": end_date}
 
     flights = []
@@ -50,5 +49,4 @@ def get_flights_mock(**context) -> list[str]:
     data = "/opt/airflow/dags/api/mock_flights.json"
     with open(data, "r") as json_file:
         data = json.load(json_file)
-        print(data[1])
         context["ti"].xcom_push(key="my_key", value=data)
