@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+from utils.dates import today, yesterday
 
 
 def transform_data(**context):
@@ -16,6 +17,7 @@ def transform_data_mock(path: str):
     flights_df = create_flights_df(fetched_df)
     airports_df = create_airports_df(fetched_df)
     operators_df = create_operators_df(fetched_df)
+    dates_df = create_dates_df(fetched_df)
 
 
 def create_df(data: list[dict]) -> pd.DataFrame:
@@ -24,6 +26,7 @@ def create_df(data: list[dict]) -> pd.DataFrame:
             {
                 "flight_id": flight["fa_flight_id"],
                 "flight_number": flight["flight_number"],
+                "date_id": yesterday(),
                 "operator_id": flight["operator"],
                 "origin_id": flight["origin"]["code_icao"],
                 "destination_id": flight["destination"]["code_icao"],
@@ -63,17 +66,18 @@ def create_flights_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
     flights_columns = [
         "flight_id",
         "flight_number",
+        "date_id",
         "operator_id",
         "origin_id",
         "destination_id",
-        "departure_delay",
-        "arrival_delay",
         "scheduled_out",
         "estimated_out",
         "actual_out",
         "scheduled_in",
         "estimated_in",
         "actual_in",
+        "departure_delay",
+        "arrival_delay",
     ]
     flights_df = fetched_df[flights_columns]
     return flights_df
@@ -123,10 +127,26 @@ def create_operators_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
 
     operators_df = pd.DataFrame(operators, columns=["operator_id", "name", "country"])
 
-    print(operators_df)
-
     return operators_df
 
 
-path = "dags/api/mock_flights.json"
+def create_dates_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
+    dates_id = fetched_df["date_id"].unique()
+
+    dates = pd.to_datetime(dates_id, format="%Y-%m-%d")
+
+    dates_df = pd.DataFrame(
+        {
+            "day": dates.day,
+            "month": dates.month,
+            "year": dates.year,
+            "day_of_week": dates.day_name(),
+            "quarter": dates.quarter,
+        }
+    )
+
+    return dates_df
+
+
+path = "dags/extract/mock_flights.json"
 transform_data_mock(path)
