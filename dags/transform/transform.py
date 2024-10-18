@@ -19,6 +19,8 @@ def transform_data_mock(path: str):
     operators_df = create_operators_df(fetched_df)
     dates_df = create_dates_df(fetched_df)
 
+    return [flights_df, airports_df, operators_df, dates_df]
+
 
 def create_df(data: list[dict]) -> pd.DataFrame:
     df = pd.DataFrame(
@@ -137,6 +139,7 @@ def create_dates_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
 
     dates_df = pd.DataFrame(
         {
+            "date_id": dates.to_pydatetime(),
             "day": dates.day,
             "month": dates.month,
             "year": dates.year,
@@ -148,5 +151,5 @@ def create_dates_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
     return dates_df
 
 
-path = "dags/extract/mock_flights.json"
-transform_data_mock(path)
+# path = "dags/extract/mock_flights.json"
+# transform_data_mock(path)

@@ -1,13 +1,10 @@
 import requests
 import json
 from typing import Literal
-import os
-from dotenv import load_dotenv
+from config.config import ENV
 
-
-load_dotenv()
-API_KEY = os.getenv("API_KEY")
-API_URL = os.getenv("API_URL")
+API_KEY = ENV["API_KEY"]
+API_URL = ENV["API_URL"]
 
 headers = {"x-apikey": API_KEY}
 
