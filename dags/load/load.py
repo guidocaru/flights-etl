@@ -16,16 +16,18 @@ def load_to_redshift(dataframes):
 
     conn = redshift_connector.connect(**conn_params)
 
-    wr.redshift.to_sql(
-        df=dataframes[0],
-        con=conn,
-        table="test",
-        schema=ENV["REDSHIFT_SCHEMA"],
-        mode="overwrite",
-        use_column_names=True,
-        lock=True,
-        index=False,
-    )
+    for table_name, dataframe in dataframes.items():
+
+        wr.redshift.to_sql(
+            table=table_name,
+            df=dataframe,
+            con=conn,
+            schema=ENV["REDSHIFT_SCHEMA"],
+            mode="overwrite",
+            use_column_names=True,
+            lock=True,
+            index=False,
+        )
 
 
 dataframes = transform_data_mock("dags/extract/mock_flights.json")

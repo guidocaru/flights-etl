@@ -15,20 +15,33 @@ def get_flights(
     end_date: str,
     category: Literal["departures", "arrivals"],
 ) -> list[str]:
+    """
+    Fetches a list of flights for a given airport, date range, and category (departures or arrivals).
+
+    Args:
+        airport (str): The airport code.
+        start_date (str): The start date for fetching flights.
+        end_date (str): The end date for fetching flights.
+        category (Literal["departures", "arrivals"]): The flight category, either "departures" or "arrivals".
+
+    Returns:
+        List[str]: A list of fetched flights information.
+    """
 
     endpoint = f"/airports/{airport}/flights/{category}"
     params = {"start": start_date, "end": end_date}
-
     flights = []
 
     while True:
 
-        response = requests.get(API_URL + endpoint, params=params, headers=headers)
+        try:
+            response = requests.get(API_URL + endpoint, params=params, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+            print("Error requesting the API", e)
+            break
 
-        if response.status_code != 200:
-            raise ValueError("error", response.status_code)
-
-        data = response.json()
         flights.extend(data.get(category, []))
 
         links = data.get("links")

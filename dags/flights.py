@@ -5,7 +5,7 @@ from airflow.utils.dates import days_ago
 from utils.dates import today, yesterday
 
 
-from extract.flights import get_flights_mock
+from dags.extract.get_flights import get_flights_mock
 from transform.transform import transform_data
 
 
