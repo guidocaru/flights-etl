@@ -26,6 +26,7 @@ dag = DAG(
     default_args=default_args,
     description="DAG for flights data",
     schedule_interval=timedelta(days=1),
+    catchup=False,
 )
 
 
