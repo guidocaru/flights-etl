@@ -1,12 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
-from utils.dates import today, yesterday
+from plugins.etl.extract.get_flights import get_flights
+from plugins.etl.transform.transform import transform_data
+from plugins.etl.load.load import load_to_redshift
 
+from dotenv import load_dotenv
 
-from dags.extract.get_flights import get_flights_mock
-from transform.transform import transform_data
+load_dotenv()
 
 
 default_args = {
@@ -24,13 +26,12 @@ dag = DAG(
     default_args=default_args,
     description="DAG for flights data",
     schedule_interval=timedelta(days=1),
-    params={"today": today, "yesterday": yesterday},
 )
 
 
 t1 = PythonOperator(
     task_id="extract",
-    python_callable=get_flights_mock,
+    python_callable=get_flights,
     provide_context=True,
     dag=dag,
 )
@@ -44,10 +45,9 @@ t2 = PythonOperator(
 
 t3 = PythonOperator(
     task_id="load",
-    python_callable=transform_data,
+    python_callable=load_to_redshift,
     provide_context=True,
     dag=dag,
 )
-
 
 t1 >> t2 >> t3

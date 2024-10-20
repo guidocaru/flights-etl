@@ -4,30 +4,22 @@ from utils.dates import yesterday
 
 
 def transform_data(**context):
-    data_pulled = context["ti"].xcom_pull(key="my_key")
-    print("data desde transform", data_pulled)
+    fetched_flights = context["ti"].xcom_pull(key="fetched_flights")
 
-
-def transform_data_mock(path: str):
-    """
-    Receives the fetched data and generates a Pandas dataframe for each table in the database.
-    """
-
-    with open(path, "r") as json_file:
-        fetched = json.load(json_file)
-
-    fetched_df = create_df(fetched)
+    fetched_df = create_df(fetched_flights)
     flights_df = create_flights_df(fetched_df)
     airports_df = create_airports_df(fetched_df)
     operators_df = create_operators_df(fetched_df)
     dates_df = create_dates_df(fetched_df)
 
-    return {
+    transformed_data = {
         "flights_df": flights_df,
         "airports_df": airports_df,
         "operators_df": operators_df,
         "dates_df": dates_df,
     }
+
+    context["ti"].xcom_push(key="transformed_data", value=transformed_data)
 
 
 def create_df(data: list[dict]) -> pd.DataFrame:
@@ -162,7 +154,7 @@ def create_operators_df(fetched_df: pd.DataFrame) -> pd.DataFrame:
 
     operators_id = fetched_df["operator_id"].unique()
 
-    with open("dags/transform/operators.json", "r") as json_file:
+    with open("plugins/etl/transform/operators.json", "r") as json_file:
         operators_info = json.load(json_file)
 
     operators = [

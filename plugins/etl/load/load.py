@@ -1,21 +1,22 @@
-from dags.transform.transform import transform_data_mock
 import awswrangler as wr
 import redshift_connector
-from config.config import ENV
-from pandas import DataFrame
+from typing import Any
+import os
 
 
-def load_to_redshift(dataframes: list[DataFrame]):
+def load_to_redshift(**context: Any) -> None:
     """
     Loads a set of pandas dataframes into the corresponding tables in an Amazon Redshift database
     """
 
+    transformed_data = context["ti"].xcom_pull(key="transformed_data")
+
     conn_params = {
-        "host": ENV["REDSHIFT_HOST"],
-        "port": ENV["REDSHIFT_PORT"],
-        "database": ENV["REDSHIFT_DB"],
-        "user": ENV["REDSHIFT_USER"],
-        "password": ENV["REDSHIFT_PASSWORD"],
+        "host": os.environ.get("REDSHIFT_HOST"),
+        "port": os.environ.get("REDSHIFT_PORT"),
+        "database": os.environ.get("REDSHIFT_DB"),
+        "user": os.environ.get("REDSHIFT_USER"),
+        "password": os.environ.get("REDSHIFT_PASSWORD"),
     }
 
     try:
@@ -24,24 +25,19 @@ def load_to_redshift(dataframes: list[DataFrame]):
         raise ConnectionError("Error connecting to Redshift: ", e)
 
     try:
-        for table_name, dataframe in dataframes.items():
+        for table_name, dataframe in transformed_data.items():
             wr.redshift.to_sql(
                 table=table_name,
                 df=dataframe,
                 con=conn,
-                schema=ENV["REDSHIFT_SCHEMA"],
+                schema=os.environ.get("REDSHIFT_SCHEMA"),
                 mode="overwrite",
                 use_column_names=True,
                 lock=True,
                 index=False,
             )
     except Exception as e:
-        raise Exception(f"Error loading data to Redshift: {str(e)}")
+        raise Exception("Error loading data to Redshift: ", e)
     finally:
         if conn:
             conn.close()
-
-
-dataframes = transform_data_mock("dags/extract/mock_flights.json")
-
-load_to_redshift(dataframes)
