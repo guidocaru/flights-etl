@@ -1,15 +1,40 @@
 import requests
-import json
-from typing import Literal
-from config.config import ENV
-
-API_KEY = ENV["API_KEY"]
-API_URL = ENV["API_URL"]
-
-headers = {"x-apikey": API_KEY}
+from typing import Literal, Any
+from utils.dates import today, yesterday
+import os
+import time
 
 
-def get_flights(
+API_KEY = os.environ.get("API_KEY")
+API_URL = os.environ.get("API_URL")
+
+
+def get_flights(**context: Any) -> None:
+    """
+    Fetches both departure and arrival flights for the Ezeiza (SAEZ) airport from yesterday to today, combining both departures and arrivals.
+    """
+
+    airport_code = "SAEZ"
+
+    arrivals = fetch_flights(
+        airport=airport_code,
+        start_date=yesterday(),
+        end_date=today(),
+        category="arrivals",
+    )
+
+    departures = fetch_flights(
+        airport=airport_code,
+        start_date=yesterday(),
+        end_date=today(),
+        category="departures",
+    )
+
+    fetched_flights = departures + arrivals
+    context["ti"].xcom_push(key="fetched_flights", value=fetched_flights)
+
+
+def fetch_flights(
     airport: str,
     start_date: str,
     end_date: str,
@@ -28,6 +53,7 @@ def get_flights(
         List[str]: A list of fetched flights information.
     """
 
+    headers = {"x-apikey": API_KEY}
     endpoint = f"/airports/{airport}/flights/{category}"
     params = {"start": start_date, "end": end_date}
     flights = []
@@ -39,7 +65,7 @@ def get_flights(
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
-            print("Error requesting the API", e)
+            print("Error requesting the API: ", e)
             break
 
         flights.extend(data.get(category, []))
@@ -52,11 +78,7 @@ def get_flights(
         endpoint = links.get("next")
         params = {}
 
+        # To avoid too many requests
+        time.sleep(5)
+
     return flights
-
-
-def get_flights_mock(**context) -> list[str]:
-    data = "/opt/airflow/dags/api/mock_flights.json"
-    with open(data, "r") as json_file:
-        data = json.load(json_file)
-        context["ti"].xcom_push(key="my_key", value=data)
