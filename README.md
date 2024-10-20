@@ -16,9 +16,11 @@ El diagrama de la base de datos generada y alojada en Redshift sigue un modelo d
 
 - La tabla de hechos 'flights' contiene información detallada sobre cada vuelo (ID, número, fechas, horas programadas/estimadas, etc.).
 
-Las tablas de dimensiones contienen los IDs de referencia utilizados por la tabla 'flights' y el detalle de los campos.
+- Las tablas de dimensiones contienen los IDs de referencia utilizados por la tabla 'flights' y el detalle de los campos.
 
 ## Ejecutar el ETL
+
+Para ejecutar el pipeline es necesario tener instalados Python y Docker Compose y luego seguir los pasos a continuación.
 
 #### 1. Clonar repositorio
 
@@ -60,6 +62,6 @@ docker compose up -d
 
 Visitar http://localhost:8080 e iniciar sesión con 'airflow' como usuario y contraseña.
 
-#### 4. Ejecutar el pipeline
+#### 5. Ejecutar el pipeline
 
 Localizar el DAG 'flights-etl' y ejecutarlo.
