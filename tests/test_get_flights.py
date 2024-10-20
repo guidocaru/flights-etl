@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from dags.extract.get_flights import get_flights
+from plugins.etl.extract import get_flights
 import requests
 
 
