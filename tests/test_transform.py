@@ -1,12 +1,9 @@
 import pytest
 import pandas as pd
-import json
-from datetime import datetime
-from dags.transform.transform import (
+from plugins.etl.transform.transform import (
     create_df,
     create_flights_df,
     create_airports_df,
-    create_operators_df,
     create_dates_df,
 )
 

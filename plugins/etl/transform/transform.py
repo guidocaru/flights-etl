@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from utils.dates import yesterday
+from plugins.utils.dates import yesterday
 
 
 def transform_data(**context):
